@@ -1,13 +1,15 @@
+<!--
 ---
 toc:
 	depth_from: 1
 	depth_to: 6
 	ordered: true
 ---
+-->
 
 XBMS Specification (Draft 0.2)
 
-[TOC]
+
 
 # 要素
 ## xbms
@@ -264,7 +266,7 @@ judge属性は、\<judge\>タグのtype属性と対応する。
 発行するナンバーの生成処理はエディタ側に任せるが、最低限サイズだけは共通化しておきたい。
 
 ## body
-- Contents : ( bar | bpm | bgm | note | bga | stop | include | trunk )*
+- Contents : ( bar | bpm | bgm | note | bga | scroll | include | trunk )*
 
 XBMS文書として再生される要素を定義します。
 
@@ -301,8 +303,8 @@ sound属性と同じidの\<sound\>要素のファイルを再生します。
 time属性はどの位置から再生するかであり、省略された場合0となります。  
 lane属性はXBMSエディタ上での位置を定義する。time属性とlane属性がどちらも同じ\<bgm\>が複数あっても本体側では何の問題もなく動き、エディタでも重なったまま保存することが望ましい。
 
+### note
 #### note / note type="note"
-- Contents : packnote+
 - Attribute
 	- time = TIME
 	- sound = STRING
@@ -343,4 +345,91 @@ start及びend属性は始・終端の判定について指定します。
 	- group? = GROUP
 	- damage = NUMBER
 
-地雷ノーツを定義します。
+地雷ノーツを定義します。
+
+#### note type="invisible"
+- Attribute
+	- time = TIME
+	- sound? = STRING
+	- position = POSITION
+	- group? = GROUP
+
+不可視ノーツを定義します。
+
+#### note type="rotation"
+- Attribute
+	- time = TIME
+	- sound? = STRING
+	- position = POSITION
+	- length = TIME
+	- angle = NUMBER
+	- group? = GROUP
+
+一回転(角度指定)ノーツを定義します。  
+lengthの区間にかけて特定の角度ちょうど回転させることを要求します。
+角度が入力できない入力装置であった場合、ロングノーツと同等であれば良いとします。
+
+#### note type="freezone"
+- Contents : note*
+- Attribute
+	- time = TIME
+	- id = STRING
+	- position+ = POSITION
+	- length = TIME
+	- group? = GROUP
+
+フリーゾーンを定義します。フリーゾーン内の他のノーツが降ってくるまでの間、演奏した時、同じidの<sound>を再生します。  
+フリーゾーン内にいくつのノーツがあったとしても、フリーゾーン一つで1つのノーツとなります。  
+判定については以下の条件を満たすことを要求します。
+
+- 中にノーツが含まれている場合、以下のうち良い方の判定を採用する。
+	- 中のノーツの判定の中で最悪の判定
+	- フリーゾーン内で一度でも操作していた場合、コンボが切れない最良の判定
+- 中にノーツが含まれていない場合、以下のうち良い方の判定を採用する。
+	- 一度でも入力装置を操作していた場合、最良の判定となる
+	- その他の場合、最悪の判定
+
+ただし、ここでの「フリーゾーン内のノーツ」には地雷ノーツ及び不可視ノーツは含みません。  
+また、この要素には\<note type="freezone"\>及び同じposition属性を持たない<note>、group属性を持つ\<note\>を含むことが出来ません。
+
+### bga
+- Attribute
+	- time? = TIME
+	- image? = STRING
+	- layer = NUMBER
+
+BGAを定義します。  
+time属性で指定された位置からimage属性をlayer属性で指定した\<layer\>に表示する。
+
+### scroll
+- Attribute
+	- time = TIME
+	- speed = NUMBER
+	- group? = GROUP
+
+譜面の速度を見た目だけ変更する。  
+speed属性は現在のBPMから計算されるスクロールスピードを1とした相対的な速度で、0では停止、負数では逆走する。
+
+## include
+- Contents : FILE
+
+内容のファイル名のXBMSファイルを読み込みます。
+
+## trunk
+- Contents : branch+
+
+分岐を定義します。
+
+### branch
+- Contents : condition? , 最も近いtrunk/brunch以外の先祖要素が含むことの出来るすべての要素*
+- Attribute
+	- priority? = NUMBER
+	- multiplicity? = NUMBER
+
+<condition>の条件を満たした場合、中の要素を解釈します。  
+ただし、一つの<trunk>要素の中の<brunch>要素はpriorityが大きい一つのみ解釈されます。  
+priorityが等しく、<condition>の条件を満たしている<brunch>が複数ある場合、ランダムで選択されます。この時、multiplicityがその分岐に進む割合となります。  
+priorityは省略された場合0、multiplicityは省略された場合1となります。  
+
+#### condition
+（未記述）
