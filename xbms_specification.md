@@ -1,8 +1,8 @@
 ---
 toc:
-  depth_from: 1
-  depth_to: 6
-  ordered: true
+	depth_from: 1
+	depth_to: 6
+	ordered: true
 ---
 
 XBMS Specification (Draft 0.2)
@@ -11,18 +11,18 @@ XBMS Specification (Draft 0.2)
 
 # 要素
 ## xbms
- - Contents : ( head | body | include | trunk )*
+- Contents : ( head | body | include | trunk )*
 
 XBMS文書の最上位要素です。
 
 ## head
- - Contents : ( ( title+ | artist+ | genre* | level* ) | ( sound+ | image* | layer* | resource* ) | basebpm? | keys? | judge* | gauge* | include* | trunk* | identity? )
+- Contents : ( ( title+ & artist+ & genre* & level* ) & ( sound+ & image* & layer* & resource* ) & basebpm? & ( ( keys? & gauge* ) | ( multitype? & player+ ) ) & judge* & include* & trunk* & identity? )
 
 XBMS文書のタイトルなどのヘッダ情報及び使用する音ファイルなどの情報を記述します。
 
 ### title
- - Contents : STRINGS
- - Attribute
+- Contents : STRINGS
+- Attribute
 	- priority? = NUMBER
 	- type? = STRINGS
 
@@ -38,8 +38,8 @@ typeはどのようなタイトルであるかを表現します。
 | remixtitle | リミックス名 |
 
 ### artist
- - Contents : STRINGS
- - Attribute
+- Contents : STRINGS
+- Attribute
 	- priority? = NUMBER
 	- type? = STRINGS
 
@@ -55,8 +55,8 @@ typeはどのようなアーティストであるかを表現します。
 | obj<br/>object | 譜面作者 |
 
 ### genre
- - Contents : STRINGS
- - Attribute
+- Contents : STRINGS
+- Attribute
 	- priority? = NUMBER
 	- type? = STRINGS
 
@@ -129,14 +129,14 @@ judge属性が定義されている場合、その判定が出た時間からlen
 開始時のBPMや、選曲画面に表示するBPM、自動BPM設定機能の倍率計算等に使用する。
 
 ### keys
- - Contents : (key+ | controller+ | (multitype , player+))
+- Contents : ( key+ | controller+ )
 
 XBMS文書がどのような音楽ゲームに対応するかを定義します。
 
 ### key
- - Attribute
+- Attribute
 	- position = NUMBER
-	- type? = (key | scratch | footpedal)
+	- type? = ( key | scratch | footpedal )
 
 このXBMS文書をプレイするときに必要な入力装置を定義します。  
 type属性が省略、もしくはkeyであった時、鍵盤もしくはボタンを一つ使うことを定義します。  
@@ -145,8 +145,8 @@ type属性がfootpedalであった時フットペダルを一つ使うことを�
 position属性は入力装置の順番を示します。小さいほど左側にあります。
 
 ### controller
- - Contents : key+
- - Attribute
+- Contents : key+
+- Attribute
 	- position = NUMBER
 
 入力装置をグループ分けし、一つのコントローラーとして定義します。  
@@ -154,7 +154,7 @@ position属性は入力装置の順番を示します。小さいほど左側に
 position属性はコントローラーの位置の順番を示します。小さいほど左側にあります。
 
 ### multitype
- - Contents : STRING = (coop | battle | team)
+- Contents : STRING = (coop | battle | team)
 
 どのような形式で複数人プレイするかを定義します。  
 coopの場合、全てのプレイヤーで協力して一つのXBMSをプレイします。  
@@ -162,8 +162,8 @@ battleの場合、プレイヤーごとに対戦して一つのXBMSをプレイ�
 teamの場合、チームごとに対戦して一つのXBMSをプレイします。
 
 ### player
- - Contents : (key+ | controller+)
- - Attribute
+- Contents : ( key+ | controller+ ) & gauge+
+- Attribute
 	- team? = NUMBER
 
 プレイヤーごとにどのような入力装置を使用するか定義します。  
@@ -172,13 +172,13 @@ team属性は<playtype>がteamの時必須であり、チーム分けを定義�
 ### judge
 - Contents : setjudge+
 - Attribute
-	- controller? = NUMBER
 	- player? = NUMBER
+	- controller? = NUMBER
 	- key? = NUMBER
 	- group? = GROUP
 
 XBMS文書の判定を定義します。  
-controller,player,key属性は判定が適用される入力を指定します。省略した場合や0とした場合、全ての入力装置に適応されます。  
+player,controller,key属性は判定が適用される入力を指定します。省略した場合や0とした場合、全ての入力装置に適応されます。  
 group属性を指定するときそのgroupのノーツのみにこの判定が適応されます。省略した場合0となります。
 
 ### setjudge
@@ -229,7 +229,8 @@ group属性を指定するときそのgroupのノーツのみにこのゲージ�
 
 #### setgauge type="start"
 
-ゲーム開始時のゲージ量を指定する。
+ゲーム開始時のゲージ量を指定する。  
+複数定義された場合、合計値となります。
 
 #### setgauge type="clear"
 
@@ -251,7 +252,7 @@ group属性を指定するときそのgroupのノーツのみにこのゲージ�
 	- judge = STRING
 	- calc = ( relative | absolute | failed )
 
-judge属性は、&lt;judge&gt;タグのtype属性と対応する。   
+judge属性は、\<judge\>タグのtype属性と対応する。   
 `calc="relative"`の場合、1ノートあたりの回復量を1.0とした相対値が適用される。
 `calc="failed"`の場合、その判定が出た時にプレイを途中終了する。
 
@@ -263,6 +264,83 @@ judge属性は、&lt;judge&gt;タグのtype属性と対応する。
 発行するナンバーの生成処理はエディタ側に任せるが、最低限サイズだけは共通化しておきたい。
 
 ## body
- - Contents : ( bar | bpm | bgm | note | bga | stop | include | trunk )*
+- Contents : ( bar | bpm | bgm | note | bga | stop | include | trunk )*
 
 XBMS文書として再生される要素を定義します。
+
+### bar
+- Contents : ( bpm | bgm | note | bga | stop | include )*
+- Attribute
+	- time = TIME
+	- length? = TIME
+	- hidden?
+	- group? = GROUP
+
+1小節を定義します。  
+time属性は曲頭からどの位置にこの小節を置くかである。省略された場合、0となります。  
+length属性はこの小節の長さであり、省略された場合4拍、つまり4/4拍子となります。  
+hidden属性がある場合、始点、終点に小節線が表示されなくなります。  
+group属性がある場合、その中に含まれる全てのノーツがそのグループに振り分けられます。
+
+### bpm
+- Contents : NUMBER
+- Attribute
+	- time? = TIME
+
+BPMを定義します。  
+time属性はどの位置からこのBPMで再生するかであり、省略された場合0となります。
+
+### bgm
+- Attribute
+	- time? = TIME
+	- sound = STRING
+	- lane? = NUMBER
+
+演奏に依らず再生される音声を定義します。  
+sound属性と同じidの\<sound\>要素のファイルを再生します。  
+time属性はどの位置から再生するかであり、省略された場合0となります。  
+lane属性はXBMSエディタ上での位置を定義する。time属性とlane属性がどちらも同じ\<bgm\>が複数あっても本体側では何の問題もなく動き、エディタでも重なったまま保存することが望ましい。
+
+#### note / note type="note"
+- Contents : packnote+
+- Attribute
+	- time = TIME
+	- sound = STRING
+	- position = POSITION
+	- group? = GROUP
+
+timeで指定された位置にノーツを定義します。  
+このノーツが演奏された時、sound属性と同じidの\<sound\>要素のファイルを再生します。  
+position属性は演奏する入力装置を選択します。
+
+#### note type="long"
+- Attribute
+	- time = TIME
+	- length = TIME
+	- sound = STRING
+	- position = POSITION
+	- group? = GROUP
+	- release? = STRING
+	- start? = (down | keep)
+	- end? = (up | keep)
+
+timeで指定された位置から始まるロングノーツを定義します。  
+このノーツが演奏されている間、sound属性と同じidの\<sound\>要素のファイルを再生します。  
+また、release属性が定義されている場合、離された時そのidの\<sound\>要素のファイルを再生します。  
+
+start及びend属性は始・終端の判定について指定します。
+
+- `start="down"`(デフォルト値)の場合、始端で入力開始判定を行います。
+- `start="keep"`の場合、始端以前から入力されていれば最善の判定を行います。
+- `end="up"`の場合、終端で入力終了判定を行います。**ノーツ数は1増加します。**
+- `end="keep"`(デフォルト値)の場合、終端で特別な判定は行いません。
+
+#### note type="mine"
+- Attribute
+	- time = TIME
+	- sound? = STRING
+	- position = POSITION
+	- group? = GROUP
+	- damage = NUMBER
+
+地雷ノーツを定義します。
